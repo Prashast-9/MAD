@@ -16,10 +16,22 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
+
+import java.text.NumberFormat;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String STATE_AMOUNT = "state_amount";
+    private static final String STATE_FROM = "state_from";
+    private static final String STATE_TO = "state_to";
+    private static final String STATE_RESULT = "state_result";
+
+    private TextInputLayout amountLayout;
+    private TextInputEditText amountInput;
     private AutoCompleteTextView fromCurrencyInput;
     private AutoCompleteTextView toCurrencyInput;
     private TextView resultAmount;
@@ -45,6 +57,8 @@ public class MainActivity extends AppCompatActivity {
             return false;
         });
 
+        amountLayout = findViewById(R.id.amount_layout);
+        amountInput = findViewById(R.id.amount_input);
         fromCurrencyInput = findViewById(R.id.from_currency_input);
         toCurrencyInput = findViewById(R.id.to_currency_input);
         resultAmount = findViewById(R.id.result_amount);
@@ -61,9 +75,6 @@ public class MainActivity extends AppCompatActivity {
 
         fromCurrencyInput.setOnClickListener(v -> fromCurrencyInput.showDropDown());
         toCurrencyInput.setOnClickListener(v -> toCurrencyInput.showDropDown());
-
-        fromCurrencyInput.setText(getString(R.string.currency_inr), false);
-        toCurrencyInput.setText(getString(R.string.currency_usd), false);
 
         TextWatcher pairWatcher = new TextWatcher() {
             @Override
@@ -82,18 +93,58 @@ public class MainActivity extends AppCompatActivity {
         fromCurrencyInput.addTextChangedListener(pairWatcher);
         toCurrencyInput.addTextChangedListener(pairWatcher);
 
-        resultAmount.setText(R.string.placeholder_converted_amount);
+        if (savedInstanceState == null) {
+            fromCurrencyInput.setText(getString(R.string.currency_inr), false);
+            toCurrencyInput.setText(getString(R.string.currency_usd), false);
+            amountInput.setText(getString(R.string.default_amount_sample));
+            resultAmount.setText(R.string.placeholder_converted_amount);
+        } else {
+            restoreFormState(savedInstanceState);
+        }
 
         MaterialButton swapButton = findViewById(R.id.swap_button);
-        swapButton.setOnClickListener(v -> swapCurrencies());
+        swapButton.setOnClickListener(v -> {
+            swapCurrencies();
+            performConversion();
+        });
 
         MaterialButton convertButton = findViewById(R.id.convert_button);
-        convertButton.setOnClickListener(v -> applyDummyConvertPreview());
-
-        TextInputEditText amountInput = findViewById(R.id.amount_input);
-        amountInput.setText(getString(R.string.default_amount_sample));
+        convertButton.setOnClickListener(v -> performConversion());
 
         updateCurrencyPairLabel();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(STATE_AMOUNT, textOrEmpty(amountInput));
+        outState.putString(STATE_FROM, textOrEmpty(fromCurrencyInput));
+        outState.putString(STATE_TO, textOrEmpty(toCurrencyInput));
+        outState.putString(STATE_RESULT, textOrEmpty(resultAmount));
+    }
+
+    private void restoreFormState(Bundle savedInstanceState) {
+        String amount = savedInstanceState.getString(STATE_AMOUNT);
+        if (amount != null) {
+            amountInput.setText(amount);
+        }
+        String from = savedInstanceState.getString(STATE_FROM);
+        if (from != null) {
+            fromCurrencyInput.setText(from, false);
+        }
+        String to = savedInstanceState.getString(STATE_TO);
+        if (to != null) {
+            toCurrencyInput.setText(to, false);
+        }
+        String result = savedInstanceState.getString(STATE_RESULT);
+        if (result != null) {
+            resultAmount.setText(result);
+        }
+    }
+
+    private static String textOrEmpty(TextView view) {
+        CharSequence t = view.getText();
+        return t != null ? t.toString() : "";
     }
 
     private void swapCurrencies() {
@@ -116,11 +167,57 @@ public class MainActivity extends AppCompatActivity {
         resultCurrencyPair.setText(getString(R.string.currency_pair_format, from, to));
     }
 
-    /**
-     * UI-only placeholder: refreshes labels with static sample output (no real conversion).
-     */
-    private void applyDummyConvertPreview() {
-        resultAmount.setText(getString(R.string.dummy_converted_value));
+    private void performConversion() {
+        amountLayout.setError(null);
+
+        String rawAmount = amountInput.getText() != null ? amountInput.getText().toString().trim() : "";
+        if (rawAmount.isEmpty()) {
+            amountLayout.setError(getString(R.string.error_amount_empty));
+            return;
+        }
+
+        final double amount;
+        try {
+            amount = parseAmount(rawAmount);
+        } catch (NumberFormatException e) {
+            amountLayout.setError(getString(R.string.error_amount_invalid));
+            return;
+        }
+
+        String from = fromCurrencyInput.getText().toString().trim();
+        String to = toCurrencyInput.getText().toString().trim();
+        if (!ExchangeRates.isSupported(from)) {
+            Snackbar.make(findViewById(R.id.main), R.string.error_currency_invalid, Snackbar.LENGTH_LONG).show();
+            return;
+        }
+        if (!ExchangeRates.isSupported(to)) {
+            Snackbar.make(findViewById(R.id.main), R.string.error_currency_invalid, Snackbar.LENGTH_LONG).show();
+            return;
+        }
+
+        final double converted;
+        try {
+            converted = CurrencyConverter.convert(amount, from, to);
+        } catch (IllegalArgumentException e) {
+            Snackbar.make(findViewById(R.id.main), R.string.error_conversion_failed, Snackbar.LENGTH_LONG).show();
+            return;
+        }
+
+        NumberFormat nf = NumberFormat.getNumberInstance(Locale.getDefault());
+        nf.setMinimumFractionDigits(2);
+        nf.setMaximumFractionDigits(2);
+        resultAmount.setText(nf.format(converted));
         updateCurrencyPairLabel();
+    }
+
+    /**
+     * Parses a user-entered amount: trims whitespace, strips grouping commas/spaces, uses {@code '.'} as decimal separator.
+     */
+    static double parseAmount(String raw) throws NumberFormatException {
+        String s = raw.trim().replace(",", "").replace(" ", "");
+        if (s.isEmpty()) {
+            throw new NumberFormatException("empty");
+        }
+        return Double.parseDouble(s);
     }
 }
