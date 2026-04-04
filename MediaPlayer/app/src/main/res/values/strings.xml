@@ -23,4 +23,8 @@
     <string name="control_stop">Stop</string>
     <string name="control_restart">Restart</string>
     <string name="playback_section_title">Playback</string>
+
+    <string name="audio_error_load">Could not open this audio file.</string>
+    <string name="audio_error_playback">Playback failed.</string>
+    <string name="audio_msg_not_ready">Load an audio file first.</string>
 </resources>
