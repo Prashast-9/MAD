@@ -52,6 +52,18 @@ public final class AudioPlaybackController {
         return mediaPlayer != null && mediaPlayer.isPlaying();
     }
 
+    /** Current position in milliseconds, or 0 if not prepared. */
+    public int getCurrentPositionMs() {
+        if (!isPrepared()) {
+            return 0;
+        }
+        try {
+            return mediaPlayer.getCurrentPosition();
+        } catch (IllegalStateException e) {
+            return 0;
+        }
+    }
+
     /**
      * Releases any existing player and loads a new URI (prepare is asynchronous).
      */

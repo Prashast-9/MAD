@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/playback_card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -13,7 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingHorizontal="16dp"
+        android:paddingHorizontal="18dp"
         android:paddingTop="16dp"
         android:paddingBottom="18dp">
 
@@ -26,10 +27,20 @@
             android:textAppearance="@style/TextAppearance.Material3.LabelMedium"
             android:textColor="?attr/colorOnSurfaceVariant" />
 
+        <TextView
+            android:id="@+id/playback_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:minHeight="22dp"
+            android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+            android:textColor="?attr/colorOnSurface"
+            tools:text="Stopped" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="14dp"
             android:gravity="center"
             android:orientation="horizontal">
 
@@ -44,7 +55,7 @@
                 app:icon="@drawable/ic_play_24" />
 
             <Space
-                android:layout_width="8dp"
+                android:layout_width="10dp"
                 android:layout_height="0dp" />
 
             <com.google.android.material.button.MaterialButton
@@ -58,7 +69,7 @@
                 app:icon="@drawable/ic_pause_24" />
 
             <Space
-                android:layout_width="8dp"
+                android:layout_width="10dp"
                 android:layout_height="0dp" />
 
             <com.google.android.material.button.MaterialButton
@@ -72,7 +83,7 @@
                 app:icon="@drawable/ic_stop_24" />
 
             <Space
-                android:layout_width="8dp"
+                android:layout_width="10dp"
                 android:layout_height="0dp" />
 
             <com.google.android.material.button.MaterialButton

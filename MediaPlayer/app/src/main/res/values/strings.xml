@@ -6,6 +6,8 @@
 
     <string name="mode_audio">Audio</string>
     <string name="mode_video">Video</string>
+    <string name="mode_active_audio">Active: Audio</string>
+    <string name="mode_active_video">Active: Video</string>
 
     <string name="audio_empty_title">No audio file selected</string>
     <string name="audio_file_placeholder">No file chosen</string>
@@ -24,12 +26,19 @@
     <string name="control_restart">Restart</string>
     <string name="playback_section_title">Playback</string>
 
-    <string name="audio_error_load">Could not open this audio file.</string>
-    <string name="audio_error_playback">Playback failed.</string>
-    <string name="audio_msg_not_ready">Load an audio file first.</string>
+    <string name="status_playing">Playing…</string>
+    <string name="status_paused">Paused</string>
+    <string name="status_stopped">Stopped</string>
+    <string name="status_buffering">Buffering…</string>
+    <string name="status_hint_audio">Please select an audio file</string>
+    <string name="status_hint_video">Please enter a valid video URL</string>
+
+    <string name="audio_error_load">Could not open this file. It may be missing, invalid, or an unsupported format.</string>
+    <string name="audio_error_playback">Audio playback failed. The format may not be supported.</string>
+    <string name="audio_msg_not_ready">Please select an audio file</string>
 
     <string name="video_error_empty">Enter a video URL.</string>
     <string name="video_error_invalid_url">URL must start with http:// or https://</string>
-    <string name="video_error_playback">Could not play this video. Check the URL or your connection.</string>
-    <string name="video_msg_not_ready">Load a video URL first.</string>
+    <string name="video_error_playback">Could not play this video. The URL may be invalid, the stream broken, or the format unsupported.</string>
+    <string name="video_msg_not_ready">Please enter a valid video URL</string>
 </resources>

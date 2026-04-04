@@ -12,6 +12,7 @@ import android.widget.VideoView;
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -27,12 +28,18 @@ import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
+/**
+ * Hosts audio (document URI) and video (HTTP stream) playback with shared transport controls.
+ * Only one medium plays at a time; the active tab determines which source the buttons target.
+ */
 public class MainActivity extends AppCompatActivity
         implements AudioPlaybackController.Listener, VideoStreamViewController.Listener {
 
     private AudioPlaybackController audioController;
     private VideoStreamViewController videoController;
     private MaterialButtonToggleGroup modeToggle;
+    private TextView modeActiveLabel;
+    private TextView playbackStatus;
 
     private TextView audioFileName;
     private MaterialButton btnOpenAudio;
@@ -65,6 +72,7 @@ public class MainActivity extends AppCompatActivity
             return insets;
         });
 
+        playbackStatus = findViewById(R.id.playback_status);
         audioFileName = findViewById(R.id.audio_file_name);
         btnOpenAudio = findViewById(R.id.btn_open_audio);
         btnPlay = findViewById(R.id.btn_play);
@@ -84,6 +92,7 @@ public class MainActivity extends AppCompatActivity
         View audioSection = findViewById(R.id.include_audio);
         View videoSection = findViewById(R.id.include_video);
         modeToggle = findViewById(R.id.mode_toggle_group);
+        modeActiveLabel = findViewById(R.id.mode_active_label);
 
         modeToggle.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
             if (!isChecked) {
@@ -96,9 +105,13 @@ public class MainActivity extends AppCompatActivity
             } else if (checkedId == R.id.mode_video) {
                 audioSection.setVisibility(View.GONE);
                 videoSection.setVisibility(View.VISIBLE);
-                audioController.pause();
+                if (audioController.isPlaying()) {
+                    audioController.pause();
+                }
             }
-            updateTransportEnabled();
+            updateModeIndicator();
+            updateTransportState();
+            refreshPlaybackStatus();
         });
 
         btnOpenAudio.setOnClickListener(v -> pickAudioLauncher.launch("audio/*"));
@@ -110,11 +123,36 @@ public class MainActivity extends AppCompatActivity
         btnStop.setOnClickListener(v -> onStopClicked());
         btnRestart.setOnClickListener(v -> onRestartClicked());
 
-        updateTransportEnabled();
+        updateModeIndicator();
+        updateTransportState();
+        refreshPlaybackStatus();
     }
 
     private boolean isVideoMode() {
         return modeToggle.getCheckedButtonId() == R.id.mode_video;
+    }
+
+    private void updateModeIndicator() {
+        modeActiveLabel.setText(
+                isVideoMode() ? R.string.mode_active_video : R.string.mode_active_audio);
+    }
+
+    /**
+     * Stops local audio so video (load or play) never overlaps with audio output.
+     */
+    private void stopAudioForVideoHandoff() {
+        if (audioController.isPrepared()) {
+            audioController.stop();
+        }
+    }
+
+    /**
+     * Stops video stream position when audio should own playback.
+     */
+    private void stopVideoForAudioHandoff() {
+        if (videoController.isPrepared()) {
+            videoController.pauseAndSeekToStart();
+        }
     }
 
     private void onLoadVideoClicked() {
@@ -123,86 +161,86 @@ public class MainActivity extends AppCompatActivity
         VideoUrlValidator.Result result = VideoUrlValidator.validate(raw);
         if (result == VideoUrlValidator.Result.EMPTY) {
             layoutVideoUrl.setError(getString(R.string.video_error_empty));
+            refreshPlaybackStatus();
             return;
         }
         if (result == VideoUrlValidator.Result.INVALID_SCHEME) {
             layoutVideoUrl.setError(getString(R.string.video_error_invalid_url));
+            refreshPlaybackStatus();
             return;
         }
 
         String normalized = VideoUrlValidator.normalizedUrl(raw);
-        audioController.pause();
+        stopAudioForVideoHandoff();
         videoController.load(Uri.parse(normalized));
-        updateTransportEnabled();
+        updateTransportState();
+        refreshPlaybackStatus();
     }
 
     private void onPlayClicked() {
         if (isVideoMode()) {
             if (!videoController.isPrepared()) {
-                Toast.makeText(this, R.string.video_msg_not_ready, Toast.LENGTH_SHORT).show();
                 return;
             }
-            audioController.pause();
+            stopAudioForVideoHandoff();
             videoController.play();
         } else {
             if (!audioController.isPrepared()) {
-                Toast.makeText(this, R.string.audio_msg_not_ready, Toast.LENGTH_SHORT).show();
                 return;
             }
-            videoController.pauseIfPlaying();
+            stopVideoForAudioHandoff();
             audioController.play();
         }
+        updateTransportState();
+        refreshPlaybackStatus();
     }
 
     private void onPauseClicked() {
         if (isVideoMode()) {
-            if (!videoController.isPrepared()) {
-                Toast.makeText(this, R.string.video_msg_not_ready, Toast.LENGTH_SHORT).show();
-                return;
+            if (videoController.isPlaying()) {
+                videoController.pause();
             }
-            videoController.pause();
         } else {
-            if (!audioController.isPrepared()) {
-                Toast.makeText(this, R.string.audio_msg_not_ready, Toast.LENGTH_SHORT).show();
-                return;
+            if (audioController.isPlaying()) {
+                audioController.pause();
             }
-            audioController.pause();
         }
+        updateTransportState();
+        refreshPlaybackStatus();
     }
 
     private void onStopClicked() {
         if (isVideoMode()) {
             if (!videoController.isPrepared()) {
-                Toast.makeText(this, R.string.video_msg_not_ready, Toast.LENGTH_SHORT).show();
                 return;
             }
-            videoController.stopAndResetPosition();
+            videoController.stopFullyAndReload();
         } else {
             if (!audioController.isPrepared()) {
-                Toast.makeText(this, R.string.audio_msg_not_ready, Toast.LENGTH_SHORT).show();
                 return;
             }
             audioController.stop();
         }
-        updateTransportEnabled();
+        updateTransportState();
+        refreshPlaybackStatus();
     }
 
     private void onRestartClicked() {
         if (isVideoMode()) {
             if (!videoController.isPrepared()) {
-                Toast.makeText(this, R.string.video_msg_not_ready, Toast.LENGTH_SHORT).show();
                 return;
             }
-            audioController.pause();
+            stopAudioForVideoHandoff();
             videoController.restartFromBeginning();
         } else {
             if (!audioController.isPrepared()) {
-                Toast.makeText(this, R.string.audio_msg_not_ready, Toast.LENGTH_SHORT).show();
                 return;
             }
-            videoController.pauseIfPlaying();
+            stopVideoForAudioHandoff();
             audioController.restartFromBeginning();
         }
+        updateTransportState();
+        refreshPlaybackStatus();
     }
 
     private void onAudioDocumentPicked(@Nullable Uri uri) {
@@ -216,51 +254,113 @@ public class MainActivity extends AppCompatActivity
         } catch (SecurityException ignored) {
         }
 
-        videoController.pauseIfPlaying();
+        stopVideoForAudioHandoff();
         audioFileName.setText(MediaUriUtils.displayName(this, uri));
         audioController.load(uri);
-        updateTransportEnabled();
+        updateTransportState();
+        refreshPlaybackStatus();
+    }
+
+    /**
+     * Enables transport for the current tab when that source is prepared; Pause only while playing.
+     */
+    private void updateTransportState() {
+        boolean modeVideo = isVideoMode();
+        boolean sourceReady = modeVideo ? videoController.isPrepared() : audioController.isPrepared();
+        boolean canPause = modeVideo ? videoController.isPlaying() : audioController.isPlaying();
+
+        btnPlay.setEnabled(sourceReady);
+        btnStop.setEnabled(sourceReady);
+        btnRestart.setEnabled(sourceReady);
+        btnPause.setEnabled(sourceReady && canPause);
+    }
+
+    private void refreshPlaybackStatus() {
+        if (playbackStatus == null) {
+            return;
+        }
+        if (videoController.isLoadingVisible()) {
+            setStatusText(R.string.status_buffering);
+            return;
+        }
+        boolean playing = audioController.isPlaying() || videoController.isPlaying();
+        if (playing) {
+            setStatusText(R.string.status_playing);
+            return;
+        }
+        if (isVideoMode()) {
+            if (!videoController.isPrepared()) {
+                setStatusText(R.string.status_hint_video);
+                return;
+            }
+            setPausedOrStopped(videoController.getCurrentPositionMs());
+            return;
+        }
+        if (!audioController.isPrepared()) {
+            setStatusText(R.string.status_hint_audio);
+            return;
+        }
+        setPausedOrStopped(audioController.getCurrentPositionMs());
+    }
+
+    private void setPausedOrStopped(int positionMs) {
+        if (positionMs > 250) {
+            setStatusText(R.string.status_paused);
+        } else {
+            setStatusText(R.string.status_stopped);
+        }
+    }
+
+    private void setStatusText(@StringRes int resId) {
+        playbackStatus.setText(resId);
     }
 
     @Override
     public void onPrepared() {
-        updateTransportEnabled();
+        updateTransportState();
+        refreshPlaybackStatus();
     }
 
     @Override
     public void onPlaybackComplete() {
-        // Controller seeks to start; controls stay enabled.
+        updateTransportState();
+        refreshPlaybackStatus();
     }
 
     @Override
     public void onError(String message) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
         audioFileName.setText(R.string.audio_file_placeholder);
-        updateTransportEnabled();
+        updateTransportState();
+        refreshPlaybackStatus();
     }
 
     @Override
     public void onVideoPrepared() {
-        updateTransportEnabled();
+        updateTransportState();
+        refreshPlaybackStatus();
     }
 
     @Override
     public void onVideoError() {
         Toast.makeText(this, R.string.video_error_playback, Toast.LENGTH_LONG).show();
-        updateTransportEnabled();
+        updateTransportState();
+        refreshPlaybackStatus();
     }
 
-    private void updateTransportEnabled() {
-        boolean ready = audioController.isPrepared() || videoController.isPrepared();
-        btnPlay.setEnabled(ready);
-        btnPause.setEnabled(ready);
-        btnStop.setEnabled(ready);
-        btnRestart.setEnabled(ready);
+    @Override
+    public void onVideoBufferingChanged(boolean buffering) {
+        refreshPlaybackStatus();
     }
 
     @Override
     protected void onPause() {
+        if (audioController.isPlaying()) {
+            audioController.pause();
+        }
         videoController.pauseForLifecycle();
+        updateTransportState();
+        refreshPlaybackStatus();
         super.onPause();
     }
 
