@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="screen_padding_horizontal">20dp</dimen>
+    <dimen name="screen_padding_vertical">16dp</dimen>
+    <dimen name="section_gap">20dp</dimen>
+    <dimen name="card_corner">20dp</dimen>
+    <dimen name="card_inner_padding">24dp</dimen>
+    <dimen name="card_elevation">2dp</dimen>
+    <dimen name="playback_button_size">56dp</dimen>
+    <dimen name="mode_toggle_height">48dp</dimen>
+    <dimen name="video_preview_min_height">200dp</dimen>
+</resources>

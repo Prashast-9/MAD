@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">Media Player</string>
+    <string name="header_title">Media Player</string>
+    <string name="header_subtitle">Play local audio and stream video</string>
+    <string name="content_desc_info">App information</string>
+
+    <string name="mode_audio">Audio</string>
+    <string name="mode_video">Video</string>
+
+    <string name="audio_empty_title">No audio file selected</string>
+    <string name="audio_file_placeholder">No file chosen</string>
+    <string name="audio_open_file">Open Audio File</string>
+    <string name="audio_helper">Choose an audio file from device storage</string>
+    <string name="audio_progress_placeholder">Playback position</string>
+
+    <string name="video_preview_hint">Video preview will appear here</string>
+    <string name="video_url_hint">Paste direct stream URL</string>
+    <string name="video_load_url">Load Video URL</string>
+    <string name="video_helper">Paste a direct video stream URL</string>
+
+    <string name="control_play">Play</string>
+    <string name="control_pause">Pause</string>
+    <string name="control_stop">Stop</string>
+    <string name="control_restart">Restart</string>
+    <string name="playback_section_title">Playback</string>
+</resources>

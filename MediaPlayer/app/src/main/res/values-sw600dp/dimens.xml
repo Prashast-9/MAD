@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="screen_padding_horizontal">28dp</dimen>
+    <dimen name="screen_padding_vertical">24dp</dimen>
+    <dimen name="section_gap">24dp</dimen>
+    <dimen name="video_preview_min_height">280dp</dimen>
+</resources>
