@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="dashboard_horizontal_padding">20dp</dimen>
+    <dimen name="dashboard_header_top">24dp</dimen>
+    <dimen name="dashboard_header_bottom">8dp</dimen>
+    <dimen name="card_margin_horizontal">16dp</dimen>
+    <dimen name="card_margin_bottom">16dp</dimen>
+    <dimen name="card_corner_radius">16dp</dimen>
+    <dimen name="card_content_padding">20dp</dimen>
+    <dimen name="card_section_spacing">16dp</dimen>
+    <dimen name="sensor_icon_size">40dp</dimen>
+    <dimen name="value_text_size">28sp</dimen>
+    <dimen name="axis_value_text_size">22sp</dimen>
+    <dimen name="label_text_size">14sp</dimen>
+    <dimen name="description_text_size">13sp</dimen>
+    <dimen name="scroll_bottom_padding">24dp</dimen>
+</resources>
