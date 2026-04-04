@@ -12,7 +12,7 @@
     <string name="theme_section_title">Theme</string>
     <string name="theme_dark_mode_label">Dark theme</string>
     <string name="theme_dark_switch_description">Enable dark theme</string>
-    <string name="theme_helper_text">Switch between light and dark appearance. Uses Android’s built-in day/night mode (no custom data layer in this UI-only build).</string>
+    <string name="theme_helper_text">Your choice is saved and applied when you open the app.</string>
     <string name="currency_pair_format">%1$s → %2$s</string>
     <string name="currency_inr">INR</string>
     <string name="currency_usd">USD</string>

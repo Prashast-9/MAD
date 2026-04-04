@@ -1,11 +1,9 @@
 package com.example.currencyconvertor;
 
-import android.content.res.Configuration;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -30,16 +28,8 @@ public class SettingsActivity extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
 
         MaterialSwitch themeSwitch = findViewById(R.id.theme_dark_switch);
-        themeSwitch.setChecked(isNightModeActive());
+        themeSwitch.setChecked(ThemeManager.isDarkTheme(this));
         themeSwitch.setOnCheckedChangeListener((buttonView, isChecked) ->
-                AppCompatDelegate.setDefaultNightMode(
-                        isChecked
-                                ? AppCompatDelegate.MODE_NIGHT_YES
-                                : AppCompatDelegate.MODE_NIGHT_NO));
-    }
-
-    private boolean isNightModeActive() {
-        int nightMode = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
-        return nightMode == Configuration.UI_MODE_NIGHT_YES;
+                ThemeManager.setDarkTheme(SettingsActivity.this, isChecked));
     }
 }
