@@ -20,4 +20,8 @@
     <string name="section_proximity_desc">Whether something is near the sensor (typical: Near / Far).</string>
     <string name="proximity_state_label">Distance / state</string>
     <string name="placeholder_proximity">Far</string>
+
+    <string name="sensor_not_available">Sensor not available</string>
+    <string name="proximity_near">Near</string>
+    <string name="proximity_far">Far</string>
 </resources>
