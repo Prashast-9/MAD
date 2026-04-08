@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">GallaryApp</string>
+    <string name="photo_manager_title">Photo Manager</string>
+    <string name="take_photo">Take Photo</string>
+    <string name="open_gallery">Open Gallery</string>
+    <string name="photo_manager_icon_desc">Photo manager icon</string>
+
+    <string name="gallery_title">Gallery</string>
+    <string name="select_folder">Select Folder</string>
+    <string name="gallery_placeholder_image">Gallery placeholder image</string>
+    <string name="open_sample_details">Open Sample Details</string>
+
+    <string name="image_details_title">Image Details</string>
+    <string name="image_preview_desc">Selected image preview</string>
+    <string name="image_name_placeholder">Image Name: beach_sunrise.jpg</string>
+    <string name="image_path_placeholder">Path: /storage/emulated/0/Pictures/Vacation</string>
+    <string name="image_size_placeholder">Size: 2.4 MB</string>
+    <string name="image_date_placeholder">Date Taken: 08 Apr 2026</string>
+    <string name="delete_image">Delete Image</string>
+    <string name="permission_camera_denied">Camera permission denied</string>
+    <string name="photo_saved_successfully">Photo saved successfully</string>
+    <string name="camera_capture_cancelled">Camera capture cancelled</string>
+    <string name="file_creation_failed">Unable to create image file</string>
+    <string name="file_provider_error">Unable to launch camera safely</string>
+</resources>
