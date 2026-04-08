@@ -35,11 +35,13 @@
         tools:listitem="@layout/item_gallery_placeholder"
         tools:spanCount="3" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnOpenSampleDetails"
-        style="@style/Widget.Material3.Button"
+    <TextView
+        android:id="@+id/txtEmptyState"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="@string/open_sample_details" />
+        android:gravity="center"
+        android:text="@string/no_images_in_selected_folder"
+        android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+        android:visibility="gone" />
 </LinearLayout>

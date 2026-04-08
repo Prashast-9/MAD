@@ -10,11 +10,10 @@
     app:strokeWidth="1dp">
 
     <ImageView
+        android:id="@+id/imgThumbnail"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="?attr/colorSurfaceVariant"
         android:contentDescription="@string/gallery_placeholder_image"
-        android:scaleType="center"
-        android:src="@android:drawable/ic_menu_gallery"
-        app:tint="?attr/colorOnSurfaceVariant" />
+        android:scaleType="centerCrop" />
 </com.google.android.material.card.MaterialCardView>

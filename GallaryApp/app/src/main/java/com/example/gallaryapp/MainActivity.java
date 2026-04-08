@@ -1,52 +1,57 @@
 package com.example.gallaryapp;
 
 import android.Manifest;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.MediaStore;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
 
 import com.google.android.material.button.MaterialButton;
 
-import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "MainActivity";
     private static final String PREFS_NAME = "photo_manager_prefs";
     private static final String KEY_LAST_IMAGE_URI = "last_image_uri";
-    private static final String KEY_LAST_IMAGE_PATH = "last_image_path";
+    private static final String PHOTO_MANAGER_RELATIVE_PATH = Environment.DIRECTORY_PICTURES + "/PhotoManager/";
 
     private Uri pendingImageUri;
-    private String pendingImagePath;
 
-    private final ActivityResultLauncher<String> cameraPermissionLauncher =
-            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
-                if (isGranted) {
+    private final ActivityResultLauncher<String[]> cameraPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
+                boolean cameraGranted = Boolean.TRUE.equals(result.get(Manifest.permission.CAMERA));
+                boolean writeGranted = true;
+                if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.P) {
+                    writeGranted = Boolean.TRUE.equals(result.get(Manifest.permission.WRITE_EXTERNAL_STORAGE));
+                }
+                if (cameraGranted && writeGranted) {
                     launchCameraCapture();
                 } else {
-                    Toast.makeText(this, R.string.permission_camera_denied, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, R.string.permission_capture_denied, Toast.LENGTH_SHORT).show();
                 }
             });
 
     private final ActivityResultLauncher<Uri> takePictureLauncher =
             registerForActivityResult(new ActivityResultContracts.TakePicture(), success -> {
                 if (success && pendingImageUri != null) {
-                    saveLastCapturedImage(pendingImageUri, pendingImagePath);
+                    saveLastCapturedImage(pendingImageUri);
+                    Log.d(TAG, "Saved image URI: " + pendingImageUri);
                     Toast.makeText(this, R.string.photo_saved_successfully, Toast.LENGTH_SHORT).show();
                 } else {
-                    deletePendingFileIfExists();
                     Toast.makeText(this, R.string.camera_capture_cancelled, Toast.LENGTH_SHORT).show();
                 }
             });
@@ -67,77 +72,74 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void openCameraWithPermissionCheck() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-                == PackageManager.PERMISSION_GRANTED) {
+        boolean hasCameraPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_GRANTED;
+        boolean hasWritePermission = true;
+        if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.P) {
+            hasWritePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    == PackageManager.PERMISSION_GRANTED;
+        }
+        if (hasCameraPermission && hasWritePermission) {
             launchCameraCapture();
             return;
         }
-        cameraPermissionLauncher.launch(Manifest.permission.CAMERA);
+
+        if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.P) {
+            cameraPermissionLauncher.launch(new String[]{
+                    Manifest.permission.CAMERA,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+            });
+        } else {
+            cameraPermissionLauncher.launch(new String[]{Manifest.permission.CAMERA});
+        }
     }
 
     private void launchCameraCapture() {
-        File imageFile = createImageFile();
-        if (imageFile == null) {
+        Uri imageUri = createImageUriInPictures();
+        if (imageUri == null) {
             Toast.makeText(this, R.string.file_creation_failed, Toast.LENGTH_SHORT).show();
             return;
         }
 
-        try {
-            Uri imageUri = FileProvider.getUriForFile(
-                    this,
-                    getPackageName() + ".fileprovider",
-                    imageFile
-            );
-            pendingImageUri = imageUri;
-            pendingImagePath = imageFile.getAbsolutePath();
-            takePictureLauncher.launch(imageUri);
-        } catch (IllegalArgumentException exception) {
-            deleteFileSafely(imageFile);
-            Toast.makeText(this, R.string.file_provider_error, Toast.LENGTH_SHORT).show();
-        }
+        pendingImageUri = imageUri;
+        takePictureLauncher.launch(imageUri);
     }
 
-    private File createImageFile() {
-        File picturesDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        if (picturesDir == null) {
-            return null;
-        }
-
-        File targetDir = new File(picturesDir, "PhotoManager");
-        if (!targetDir.exists() && !targetDir.mkdirs()) {
-            return null;
-        }
-
+    private Uri createImageUriInPictures() {
         String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
-        File imageFile = new File(targetDir, "IMG_" + timestamp + ".jpg");
-        try {
-            if (imageFile.createNewFile()) {
-                return imageFile;
+        String fileName = "IMG_" + timestamp + ".jpg";
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.DISPLAY_NAME, fileName);
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            values.put(MediaStore.Images.Media.RELATIVE_PATH, PHOTO_MANAGER_RELATIVE_PATH);
+        } else {
+            java.io.File picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+            java.io.File targetDir = new java.io.File(picturesDir, "PhotoManager");
+            if (!targetDir.exists() && !targetDir.mkdirs()) {
+                Log.e(TAG, "Failed to create directory: " + targetDir.getAbsolutePath());
+                return null;
             }
-        } catch (IOException exception) {
-            return null;
+            values.put(MediaStore.Images.Media.DATA, new java.io.File(targetDir, fileName).getAbsolutePath());
         }
-        return null;
+
+        Uri uri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+        if (uri != null) {
+            Log.d(TAG, "Created image URI for capture: " + uri);
+        } else {
+            Log.e(TAG, "Failed to create image URI in MediaStore");
+        }
+        return uri;
     }
 
-    private void saveLastCapturedImage(Uri uri, String path) {
+    private void saveLastCapturedImage(Uri uri) {
+        if (uri == null) {
+            return;
+        }
         SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         preferences.edit()
                 .putString(KEY_LAST_IMAGE_URI, uri.toString())
-                .putString(KEY_LAST_IMAGE_PATH, path)
                 .apply();
-    }
-
-    private void deletePendingFileIfExists() {
-        if (pendingImagePath == null) {
-            return;
-        }
-        deleteFileSafely(new File(pendingImagePath));
-    }
-
-    private void deleteFileSafely(File file) {
-        if (file.exists()) {
-            file.delete();
-        }
     }
 }

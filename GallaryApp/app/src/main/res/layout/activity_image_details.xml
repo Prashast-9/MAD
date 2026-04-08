@@ -28,6 +28,7 @@
             app:cardElevation="2dp">
 
             <ImageView
+                android:id="@+id/imgPreview"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="?attr/colorSurfaceVariant"
@@ -50,12 +51,14 @@
                 android:padding="16dp">
 
                 <TextView
+                    android:id="@+id/txtImageName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/image_name_placeholder"
                     android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
 
                 <TextView
+                    android:id="@+id/txtImagePath"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
@@ -63,6 +66,7 @@
                     android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
 
                 <TextView
+                    android:id="@+id/txtImageSize"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
@@ -70,6 +74,7 @@
                     android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
 
                 <TextView
+                    android:id="@+id/txtImageDate"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"

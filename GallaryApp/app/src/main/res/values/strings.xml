@@ -7,8 +7,13 @@
 
     <string name="gallery_title">Gallery</string>
     <string name="select_folder">Select Folder</string>
+    <string name="refresh_gallery">Refresh Gallery</string>
     <string name="gallery_placeholder_image">Gallery placeholder image</string>
     <string name="open_sample_details">Open Sample Details</string>
+    <string name="no_images_in_selected_folder">No images in selected folder</string>
+    <string name="folder_selection_cancelled">Folder selection cancelled</string>
+    <string name="invalid_folder_selection">Selected folder is invalid or inaccessible</string>
+    <string name="folder_permission_failed">Unable to keep folder permission</string>
 
     <string name="image_details_title">Image Details</string>
     <string name="image_preview_desc">Selected image preview</string>
@@ -17,9 +22,25 @@
     <string name="image_size_placeholder">Size: 2.4 MB</string>
     <string name="image_date_placeholder">Date Taken: 08 Apr 2026</string>
     <string name="delete_image">Delete Image</string>
+    <string name="image_not_found">Image not found</string>
+    <string name="image_name_format">Image Name: %1$s</string>
+    <string name="image_uri_format">URI: %1$s</string>
+    <string name="image_size_format">Size: %1$s</string>
+    <string name="image_date_format">Last Modified: %1$s</string>
+    <string name="unknown_value">Unknown</string>
+    <string name="delete_confirmation_message">Are you sure you want to delete this image?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="image_deleted_successfully">Image deleted successfully</string>
+    <string name="delete_image_failed">Unable to delete this image</string>
+    <string name="delete_permission_denied">Permission denied while deleting image</string>
     <string name="permission_camera_denied">Camera permission denied</string>
+    <string name="permission_capture_denied">Camera/storage permission denied</string>
+    <string name="permission_gallery_denied">Gallery permission denied</string>
     <string name="photo_saved_successfully">Photo saved successfully</string>
     <string name="camera_capture_cancelled">Camera capture cancelled</string>
     <string name="file_creation_failed">Unable to create image file</string>
     <string name="file_provider_error">Unable to launch camera safely</string>
+    <string name="gallery_load_failed">Unable to load gallery images</string>
+    <string name="no_images_available">No images available</string>
 </resources>
